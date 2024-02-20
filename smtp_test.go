@@ -1,30 +1,32 @@
 package tinysmtp
 
 import (
-	"net"
+	"fmt"
 	"testing"
 	"time"
+    "crypto/tls"
 )
 
 func TestX(t *testing.T) {
-    conn, err := net.Dial("tcp", "localhost:1025")
+    conn, err := tls.Dial("tcp", "smtp.gmail.com:465", nil)
+	// conn, err := net.Dial("tcp", "localhost:1025")
 	if err != nil {
-		panic("fuck")
+		panic(fmt.Sprintf("failed to connect to the smtp server: %s", err.Error()))
 	}
-	client := *NewClient(conn)
-	client.recv_command()
+	client, err := NewClient(conn)
 	client.ehlo("google.com")
-    client.SendMail("tx@google.com",
-        "rx@google.com",
-        NewMail(
-            "tx@google.com",
-            "rx@google.com",
-            "Canonical Test Message",
-            time.Now(),
-            "randomID@google.com",
-            `Hi!
-Hope you're doing fine.
-Okay, bye!`,
-        ),
-    )
+	err = client.SendMail("szpiren@google.com",
+		"szpiren@google.com",
+		NewMail(
+			"szpiren@google.com",
+			"szpiren@google.com",
+			"Canonical Test Message",
+			time.Now(),
+            "",
+			"Hi!\nHope you're doing fine.\nOkay, bye!",
+		),
+	)
+	if err != nil {
+		panic(fmt.Sprintf("failed send an email: %s", err.Error()))
+	}
 }
