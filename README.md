@@ -9,6 +9,6 @@ Minimum implementation:
 - [x] RCPT
 - [x] DATA
 - [x] RSET
-- [ ] NOOP
+- [x] NOOP
 - [ ] QUIT
 - [ ] VRFY

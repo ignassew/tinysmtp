@@ -6,7 +6,6 @@ import (
 	"net"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type Conn struct {
@@ -26,11 +25,11 @@ func NewClient(conn net.Conn) (*Client, error) {
 	reader := bufio.NewReader(conn)
 	writer := bufio.NewWriter(conn)
 	rw := bufio.NewReadWriter(reader, writer)
-    c := &Client{Conn{*rw}}
+	c := &Client{Conn{*rw}}
 	if r, _, _ := c.recvReply(); r.err != nil {
 		return nil, r.err
 	}
-    return c, nil
+	return c, nil
 }
 
 // spec: https://datatracker.ietf.org/doc/html/rfc5321#section-4.2
@@ -121,56 +120,11 @@ func (c *Client) reset() error {
 	return nil
 }
 
-type mail struct {
-	from      string
-	to        string
-	subject   string
-	date      time.Time
-	messageID string
-	body      string
-}
-
-func NewMail(
-	from string,
-	to string,
-	subject string,
-	date time.Time,
-	messageID string,
-	body string,
-) *mail {
-	return &mail{
-		from,
-		to,
-		subject,
-		date,
-		messageID,
-		body,
-	}
-
-}
-
-func (m mail) String() string {
-	var message string
-
-	message += fmt.Sprintf("From: <%s>\r\n", m.from)
-	message += fmt.Sprintf("To: <%s>\r\n", m.to)
-	message += fmt.Sprintf("Subject: %s\r\n", m.subject)
-	message += fmt.Sprintf("Date: %s\r\n", m.date.Format(time.RFC1123Z))
-	message += "\r\n"
-	message += m.body
-
-	return message
-}
-
-func (c *Client) SendMail(from string, to string, mail *mail) error {
-	if err := c.mail(from); err != nil {
-		return err
-	}
-	if err := c.mailRecipient(to); err != nil {
-		return err
-	}
-	if err := c.mailData(fmt.Sprint(mail)); err != nil {
-		return err
+// spec: https://datatracker.ietf.org/doc/html/rfc5321#section-4.1.1.9
+func (c *Client) noop() error {
+	c.conn.writeLine("NOOP")
+	if r, _, _ := c.recvReply(); r.err != nil {
+		return r.err
 	}
 	return nil
 }
