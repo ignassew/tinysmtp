@@ -153,3 +153,15 @@ func (c *Client) quit() error {
 
 	return nil
 }
+
+// spec: https://datatracker.ietf.org/doc/html/rfc5321#section-4.1.1.6
+func (c *Client) vrfy() (string, error) {
+	c.conn.writeLine("VRFY")
+	r, _, _ := c.recvReply()
+
+	if r.GetError() != nil {
+		return r.message, r.GetError()
+	}
+
+	return r.message, nil
+}
