@@ -2,6 +2,7 @@ package tinysmtp
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"net"
 	"strconv"
@@ -131,7 +132,24 @@ func (c *Client) noop() error {
 	}
 
 	if r.code != MailActionOK {
-
+		return errors.New(fmt.Sprintf("Expected code %d, got %d", MailActionOK, r.code))
 	}
+
+	return nil
+}
+
+// spec: https://datatracker.ietf.org/doc/html/rfc5321#section-4.1.1.10
+func (c *Client) quit() error {
+	c.conn.writeLine("QUIT")
+	r, _, _ := c.recvReply()
+
+	if r.GetError() != nil {
+		return r.GetError()
+	}
+
+	if r.code != ServiceClosing {
+		return errors.New(fmt.Sprintf("Expected code %d, got %d", ServiceClosing, r.code))
+	}
+
 	return nil
 }

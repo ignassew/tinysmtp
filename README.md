@@ -10,5 +10,5 @@ Minimum implementation:
 - [x] DATA
 - [x] RSET
 - [x] NOOP
-- [ ] QUIT
+- [x] QUIT
 - [ ] VRFY
