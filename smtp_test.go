@@ -1,26 +1,39 @@
 package tinysmtp
 
 import (
-	"crypto/tls"
+	// "crypto/tls"
 	"fmt"
+	"net"
 	"testing"
 	"time"
 )
 
-func TestX(t *testing.T) {
-	conn, err := tls.Dial("tcp", "smtp.gmail.com:465", nil)
-	// conn, err := net.Dial("tcp", "localhost:1025")
+const SERVER_ADDRESS = "localhost:1025"
+
+func prepareClient(t *testing.T, address string) *Client {
+	conn, err := net.Dial("tcp", address)
 	if err != nil {
-		panic(fmt.Sprintf("failed to connect to the smtp server: %s", err.Error()))
+		t.Fatalf("failed to connect to the smtp server: %s", err.Error())
 	}
+
 	client, err := NewClient(conn)
-	client.ehlo("google.com")
-	err = func() error {
-		var mail *mail = NewMail("szpiren@google.com", "szpiren@google.com", "Canonical Test Message", time.Now(), "", "Hi!\nHope you're doing fine.\nOkay, bye!")
-		if err := client.mail("szpiren@google.com"); err != nil {
+	if err != nil {
+		t.Fatalf("failed to create the client: %s", err.Error())
+	}
+	return client
+}
+
+func TestSendMail(t *testing.T) {
+	client := prepareClient(t, SERVER_ADDRESS)
+
+	client.ehlo("example.com")
+
+	err := func() error {
+		var mail *mail = NewMail("iggy@example.com", "iggy@example.com", "Canonical Test Message", time.Now(), "", "Hi!\nHope you're doing fine.\nOkay, bye!")
+		if err := client.mail("iggy@example.com"); err != nil {
 			return err
 		}
-		if err := client.mailRecipient("szpiren@google.com"); err != nil {
+		if err := client.mailRecipient("iggy@example.com"); err != nil {
 			return err
 		}
 		if err := client.mailData(fmt.Sprint(mail)); err != nil {
@@ -29,6 +42,17 @@ func TestX(t *testing.T) {
 		return nil
 	}()
 	if err != nil {
-		panic(fmt.Sprintf("failed send an email: %s", err.Error()))
+		t.Fatalf("failed send an email: %s", err.Error())
+	}
+}
+
+func TestVRFY(t *testing.T) {
+	client := prepareClient(t, SERVER_ADDRESS)
+
+	client.ehlo("example.com")
+
+	_, err := client.vrfy("iggy@example.com")
+	if err != nil {
+		t.Fatalf("failed to verify the email address: %s", err.Error())
 	}
 }
