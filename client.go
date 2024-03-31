@@ -155,13 +155,13 @@ func (c *Client) quit() error {
 }
 
 // spec: https://datatracker.ietf.org/doc/html/rfc5321#section-4.1.1.6
-func (c *Client) vrfy() (string, error) {
-	c.conn.writeLine("VRFY")
+func (c *Client) vrfy(username string) (Reply, error) {
+	c.conn.writeLine("VRFY %s", username)
 	r, _, _ := c.recvReply()
 
 	if r.GetError() != nil {
-		return r.message, r.GetError()
+		return r, r.GetError()
 	}
 
-	return r.message, nil
+	return r, nil
 }
